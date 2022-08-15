@@ -1,13 +1,12 @@
-TABLE_SIZE = 8
+TABLE_SIZE = 16
 CANVAS_SIZE = 800
 STEP = CANVAS_SIZE / TABLE_SIZE;
 
 var room_id = Number(location.pathname.split('/').at(-1))
 
+var player;
 var board;
-var boardNew;
-
-var ctx;
+var engine;
 
 class Board {
     constructor() {
@@ -19,7 +18,6 @@ class Board {
             }
         }
         this.table = table
-
         this.playerMove = 0
     }
 
@@ -32,17 +30,19 @@ class Board {
         for (let i = 0; i < TABLE_SIZE; i++) {
             for (let j = 0; j < TABLE_SIZE; j++) {
                 var prm = board[i][j]
-                this.table[i][j] = new Piece(prm['id'],prm['x'],prm['y'])
+                this.table[i][j] = new Piece(prm['id'],prm['x'],prm['y'],prm['player'])
             }
         }   
     }
 }
 
 class Piece {
-    constructor(id,x,y) {
+    constructor(id,x,y,player_id) {
         this.id = id
         this.x = x
         this.y = y
+
+        this.player = player_id
     }
 
     getParam() {
@@ -53,20 +53,29 @@ class Piece {
     }
 }
 
+function exit_room() {
+    response = fetch('/exit_room',{
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json; charset=UTF-8','Accept': 'application/json'},
+        body: JSON.stringify({'room_id': room_id})
+    })
+}
 
 function initApp() {
     getCnv().addEventListener('mousedown', function(e) {
     setPiece(e)
     })
 
+    window.onbeforeunload = function (event) {exit_room()}
+
     board = new Board()
+    engine = new Engine()
     sendData('/load', {'board':board,'room_id':room_id})
 
     setInterval(update, 100)
 }
 
 function webUpdate() {
-    // var boardNew;
     response = fetch('/fetch',{
         method: 'PUT',
         headers: {'Content-Type': 'application/json; charset=UTF-8','Accept': 'application/json'},
@@ -74,13 +83,18 @@ function webUpdate() {
     })
     .then(response => response.json())
     .then(data => board.setBoard(data.response.table))
-
-    // board.setBoard(boardNew.response.table)
 }
 
 function update() {
     webUpdate()
     draw()
+}
+
+function setPlayer(url,id) {
+    if (url != '/load')
+        return
+    player = id;
+    console.log(player)
 }
 
 function sendData(url,data) {
@@ -89,9 +103,9 @@ function sendData(url,data) {
         headers: {'Content-Type': 'application/json; charset=UTF-8','Accept': 'application/json'},
         body: JSON.stringify(data)
     })
-    // .then(response=> response.json())
-    // .then(data =>console.log(data))
-    return 1
+    .then(response=> response.json())
+    .then(data => setPlayer(url, data['response']))
+    return 
 }
 
 function getMousePos(event) {
@@ -147,6 +161,13 @@ function drawPiece(piece) {
     ctx = getCtx();
     X = STEP * x
     Y = STEP * y
+
+    if (piece.player == 1) {
+        ctx.fillStyle = 'black';
+    } else {
+        ctx.fillStyle = 'red';
+    }
+    console.log(player)
     
     ctx.fillRect(X,Y,STEP,STEP)
 }
@@ -155,11 +176,16 @@ function setPiece(e) {
     [XPos, YPos] = getMousePos(e)
 
     var [XCell, YCell] = [Math.floor(XPos/STEP),Math.floor(YPos/STEP)]
-    var piece = new Piece(0,XCell,YCell)
+    var piece = new Piece(0,XCell,YCell,player)
     
     // drawPiece(piece)
     board.addPiece(piece)
+
+    engine.setBoard(board)
+    board.setBoard(engine.computeBorder(XCell,YCell))
+
     sendData('/update',{'board':board,'room_id':room_id})
+
 }
 
 function draw() {

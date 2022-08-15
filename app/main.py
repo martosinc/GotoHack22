@@ -32,12 +32,6 @@ def join_room(room_id: int):
 
     return redirect(f"/room/{room_id}")
 
-
-@app.route('/exit_room', methods=['post'])
-def exit_room():
-    manager.exit(request.json['room_id'])
-
-
 @app.route('/room/<room_id>')
 def room(room_id):
     return render_template('room.html')
@@ -58,8 +52,8 @@ def load():
     board = manager.get_board(request.json['room_id'])
     if board == {}:
         manager.update(request.json['room_id'], request.json['board'])
-
-    return {'response': 0}
+        return {'response': 0}
+    return {'response': 1}
 
 @app.route('/fetch', methods=['put'])
 def fetch():
@@ -69,5 +63,8 @@ def fetch():
 
     return {'response': board}
 
+@app.route('/exit_room', methods=['put'])
+def exit_room():
+    return {'response': manager.exit(request.json['room_id'])}
 
-app.run(debug=True)
+app.run(debug=True, host="0.0.0.0")
