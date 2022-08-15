@@ -6,14 +6,12 @@ var room_id = Number(location.pathname.split('/').at(-1))
 
 var selectedCellX = -1;
 var selectedCellY = -1;
-var board
 
 var engine
 var player
 
 
 function initApp() {
-    board = new Board()
     engine = new Engine()
     loadBoard()
 
@@ -31,7 +29,7 @@ function fetchBoard() {
         body: JSON.stringify({'room_id':room_id})
     })
     .then(response => response.json())
-    .then(data => board.setBoard(data.response.table))
+    .then(data => engine.setBoard(data.response.table))
 
 }
 
@@ -48,10 +46,10 @@ function loadBoard() {
     response = fetch('/load',{
         method: 'PUT',
         headers: {'Content-Type': 'application/json; charset=UTF-8','Accept': 'application/json'},
-        body: JSON.stringify({'board':board,'room_id':room_id})
+        body: JSON.stringify({'board':engine.board, 'room_id':room_id})
         })
         .then(response => response.json())
-        .then(data => setPlayer(data['response']))
+        .then(data => engine.setBoard(data.response.table))
 }
 
 function exit_room()
@@ -72,7 +70,7 @@ function update() {
 function setPlayer(id) {
     player = id;
     console.log(player)
-}``
+}
 
 
 function getCnv() {
@@ -108,7 +106,7 @@ function drawBoard() {
 
     for (let i = 0; i < TABLE_SIZE; i++) {
         for (let j = 0; j < TABLE_SIZE; j++) {
-            if (board.table[i][j].getType() != -1) {
+            if (engine.board.table[i][j].getType() != -1) {
                 drawPiece(board.table[i][j])
             }
         }
@@ -159,9 +157,10 @@ function getCell(pos){
 
 function setPiece(pos, fill_value) {
     var [XCell, YCell] = pos
-    var piece = new Piece(fill_value, XCell, YCell)
+    var piece = new Piece(fill_value, XCell, YCell, player)
     
-    board.addPiece(piece)
+    engine.board.addPiece(piece)
+
     updateBoard()
 }
 
