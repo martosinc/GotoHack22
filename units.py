@@ -1,4 +1,4 @@
-__all__ = ['Piece', 'Board', 'Room']
+__all__ = ['Board', 'Room']
 
 
 class Room:
