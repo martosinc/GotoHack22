@@ -1,50 +1,4 @@
-class Board {
-    constructor() {
-        var table = []
-        for (let i = 0; i < TABLE_SIZE; i++) {
-            table[i] = []
-            for (let j = 0; j < TABLE_SIZE; j++) {
-                table[i][j] = new Piece(-1,i,j)
-            }
-        }
-        this.table = table
-
-        this.playerMove = 0
-    }
-
-    addPiece(piece) {
-        var [id,x,y] = piece.getParam()
-        this.table[x][y] = piece
-    }
-
-    setBoard(board) {
-        for (let i = 0; i < TABLE_SIZE; i++) {
-            for (let j = 0; j < TABLE_SIZE; j++) {
-                var prm = board[i][j]
-                this.table[i][j] = new Piece(prm['id'],prm['x'],prm['y'])
-            }
-        }
-    }
-}
-
-class Piece {
-    constructor(id,x,y) {
-        this.id = id
-        this.x = x
-        this.y = y
-
-    }
-
-    getParam() {
-        return [this.id,this.x,this.y]
-    }
-    
-    getType() {
-        return this.id
-    }
-}
-
-TABLE_SIZE = 8
+TABLE_SIZE = 16
 CANVAS_SIZE = 800
 STEP = CANVAS_SIZE / TABLE_SIZE;
 
@@ -52,12 +6,15 @@ var room_id = Number(location.pathname.split('/').at(-1))
 
 var selectedCellX = -1;
 var selectedCellY = -1;
-var board;
-var ctx;
+var board
+
+var engine
+var player
 
 
 function initApp() {
     board = new Board()
+    engine = new Engine()
     loadBoard()
 
     getCnv().addEventListener('mousedown', function(e) {mouseHandler(e)})
@@ -83,7 +40,8 @@ function updateBoard() {
         method: 'PUT',
         headers: {'Content-Type': 'application/json; charset=UTF-8','Accept': 'application/json'},
         body: JSON.stringify({'board':board,'room_id':room_id})
-    })
+        })
+
 }
 
 function loadBoard() {
@@ -91,7 +49,9 @@ function loadBoard() {
         method: 'PUT',
         headers: {'Content-Type': 'application/json; charset=UTF-8','Accept': 'application/json'},
         body: JSON.stringify({'board':board,'room_id':room_id})
-    })
+        })
+        .then(response => response.json())
+        .then(data => setPlayer(data['response']))
 }
 
 function exit_room()
@@ -107,6 +67,12 @@ function update() {
     fetchBoard()
     draw()
 }
+
+
+function setPlayer(id) {
+    player = id;
+    console.log(player)
+}``
 
 
 function getCnv() {
@@ -155,6 +121,12 @@ function drawPiece(piece) {
     X = STEP * x
     Y = STEP * y
     
+    if (piece.player == 1) {
+        ctx.fillStyle = 'black';
+    } else {
+        ctx.fillStyle = 'red';
+    }
+
     ctx.fillRect(X, Y, STEP, STEP)
 }
 

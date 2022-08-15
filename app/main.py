@@ -62,7 +62,9 @@ def load():
     if board == {}:
         manager.update(request.json['room_id'], request.json['board'])
 
-    return {'response': 0}
+        return {'response': 0}
+
+    return {'response': 1}
 
 
 @app.route('/fetch', methods=['put'])
