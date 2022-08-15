@@ -32,11 +32,13 @@ class Piece {
         this.id = id
         this.x = x
         this.y = y
+
     }
 
     getParam() {
         return [this.id,this.x,this.y]
     }
+    
     getType() {
         return this.id
     }
@@ -206,16 +208,25 @@ function setSelect(pos) {
 function mouseHandler(e){
     switch (e.button){
         case 0:
+            var [x,y] = getCell(getMousePos(e))
+            
+
+            if (board.table[x][y].getType() != -1){
+                selectedCellX = x
+                selectedCellY = y
+
+                board.table[x][y].color = 'gray'
+                break
+            }
+
+
             if (selectedCellX === -1 && selectedCellY === -1) {
-                setPiece(getCell(getMousePos(e)), 0)
+                setPiece([x,y], 0)
                 break
             }
 
             setPiece([selectedCellX, selectedCellY], -1)
-            setPiece(getCell(getMousePos(e)), 0)
-            break
-        case 2:
-            setSelect(getCell(getMousePos(e)))
+            setPiece([x, y], 0)
             break
     }
 }
