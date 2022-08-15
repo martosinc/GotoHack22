@@ -7,6 +7,7 @@ class RoomsManager:
     """
     This is rooms manager
     """
+
     def __init__(self):
         self.rooms = []
 
@@ -51,6 +52,12 @@ class RoomsManager:
         :return:
         """
         self.rooms[room_id].board = new_board
+
+    def get_room(self, room_id: int):
+        try:
+            return self.rooms[room_id]
+        except IndexError:
+            return None
 
     def get_board(self, room_id: int):
         """
