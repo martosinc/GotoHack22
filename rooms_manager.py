@@ -1,3 +1,5 @@
+from typing import Optional, Any
+
 from units import *
 
 __all__ = ['RoomsManager']
@@ -53,7 +55,20 @@ class RoomsManager:
         """
         self.rooms[room_id].board = new_board
 
-    def get_room(self, room_id: int):
+    def get_rooms_ids(self) -> list:
+        """
+        Get room IDs that are wait_player == True
+        :return: list of ids
+        """
+        ids = []
+
+        for i, row in enumerate(self.rooms):
+            if row.wait_player:
+                ids.append(i)
+
+        return ids
+
+    def get_room(self, room_id: int) -> Room:
         try:
             return self.rooms[room_id]
         except IndexError:

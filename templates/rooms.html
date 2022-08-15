@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Rooms</title>
+</head>
+<body>
+    <h1>Комнаты</h1>
+    <div>
+        {%for row in rooms%}
+        Комната <a href="/join_room/{{row}}">#{{row}}</a>
+        {%endfor%}
+    </div>
+</body>
+</html>
