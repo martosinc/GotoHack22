@@ -1,3 +1,7 @@
+TABLE_SIZE = 16
+CANVAS_SIZE = 800
+STEP = CANVAS_SIZE / TABLE_SIZE;
+
 class Board {
     constructor() {
         var table = []
@@ -17,10 +21,10 @@ class Board {
         this.table[x][y] = piece
     }
 
-    setBoard(board) {
+    setBoard(table) {
         for (let i = 0; i < TABLE_SIZE; i++) {
             for (let j = 0; j < TABLE_SIZE; j++) {
-                var prm = board[i][j]
+                var prm = table[i][j]
                 this.table[i][j] = new Piece(prm['id'],prm['x'],prm['y'],prm['player'])
             }
         }
@@ -47,11 +51,9 @@ class Piece {
 
 class Engine {
     constructor() {
-        this.board;
+        this.board = new Board()
     }
-    setBoard(board) {
-        this.board = board
-    }
+
 
     checkHistory(element) {
         for (let r = 0;  r < this.history.length; r++) {
@@ -117,7 +119,7 @@ class Engine {
                 }
             }
         }
-        return this.board.table
+        return this.board
     }
 }
 

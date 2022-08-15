@@ -1,7 +1,3 @@
-TABLE_SIZE = 16
-CANVAS_SIZE = 800
-STEP = CANVAS_SIZE / TABLE_SIZE;
-
 var room_id = Number(location.pathname.split('/').at(-1))
 
 var selectedCellX = -1;
@@ -13,6 +9,7 @@ var player
 
 function initApp() {
     engine = new Engine()
+
     loadBoard()
 
     getCnv().addEventListener('mousedown', function(e) {mouseHandler(e)})
@@ -29,7 +26,7 @@ function fetchBoard() {
         body: JSON.stringify({'room_id':room_id})
     })
     .then(response => response.json())
-    .then(data => engine.setBoard(data.response.table))
+    .then(data => engine.board.setBoard(data.response.table))
 
 }
 
@@ -37,7 +34,7 @@ function updateBoard() {
      response = fetch('/update',{
         method: 'PUT',
         headers: {'Content-Type': 'application/json; charset=UTF-8','Accept': 'application/json'},
-        body: JSON.stringify({'board':board,'room_id':room_id})
+        body: JSON.stringify({'board':engine.board,'room_id':room_id})
         })
 
 }
@@ -49,7 +46,7 @@ function loadBoard() {
         body: JSON.stringify({'board':engine.board, 'room_id':room_id})
         })
         .then(response => response.json())
-        .then(data => engine.setBoard(data.response.table))
+        .then(data => setPlayer(data['response']))
 }
 
 function exit_room()
@@ -87,16 +84,16 @@ function drawTable() {
     ctx = getCtx();
     for (let i = 0; i < TABLE_SIZE; i++) {
         ctx.beginPath();
-        ctx.moveTo(STEP*i,0);
-        ctx.lineTo(STEP*i,CANVAS_SIZE);
-        ctx.closePath();
+        ctx.moveTo(STEP*i,0)
+        ctx.lineTo(STEP*i,CANVAS_SIZE)
+        ctx.closePath()
         ctx.stroke()
     }
     for (let i = 0; i < TABLE_SIZE; i++) {
-        ctx.beginPath();
+        ctx.beginPath()
         ctx.moveTo(0,STEP*i);
-        ctx.lineTo(CANVAS_SIZE,STEP*i);
-        ctx.closePath();
+        ctx.lineTo(CANVAS_SIZE,STEP*i)
+        ctx.closePath()
         ctx.stroke()
     }
 }
@@ -107,7 +104,7 @@ function drawBoard() {
     for (let i = 0; i < TABLE_SIZE; i++) {
         for (let j = 0; j < TABLE_SIZE; j++) {
             if (engine.board.table[i][j].getType() != -1) {
-                drawPiece(board.table[i][j])
+                drawPiece(engine.board.table[i][j])
             }
         }
     }
@@ -118,12 +115,6 @@ function drawPiece(piece) {
     ctx = getCtx();
     X = STEP * x
     Y = STEP * y
-    
-    if (piece.player == 1) {
-        ctx.fillStyle = 'black';
-    } else {
-        ctx.fillStyle = 'red';
-    }
 
     ctx.fillRect(X, Y, STEP, STEP)
 }
@@ -160,6 +151,7 @@ function setPiece(pos, fill_value) {
     var piece = new Piece(fill_value, XCell, YCell, player)
     
     engine.board.addPiece(piece)
+    engine.board.setBoard(engine.computeBorder(XCell,YCell).table)
 
     updateBoard()
 }
@@ -182,11 +174,10 @@ function mouseHandler(e){
             var [x,y] = getCell(getMousePos(e))
             
 
-            if (board.table[x][y].getType() != -1){
+            if (engine.board.table[x][y].getType() != -1){
                 selectedCellX = x
                 selectedCellY = y
 
-                board.table[x][y].color = 'gray'
                 break
             }
 
