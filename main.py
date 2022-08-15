@@ -46,12 +46,10 @@ def room(room_id):
 @app.route('/update', methods=['get', 'put'])
 def update():
     if request.method == 'PUT':
-        data = json.loads(request.json)
-        manager.update(data['room_id'], data['board'])
+        manager.update(request.json['room_id'], request.json['board'])
 
     if request.method == 'GET':
-        data = json.loads(request.json)
-        return manager.get_board(data['room_id'])
+        return manager.get_board(request.json['room_id'])
 
 
 app.run(debug=True)
