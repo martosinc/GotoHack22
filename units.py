@@ -11,8 +11,3 @@ class Room:
 class Board:
     def __init__(self, json_str):
         self.json = json_str
-
-
-class Piece:
-    def __init__(self, type_id: int):
-        self.type_id = type_id
