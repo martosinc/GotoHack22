@@ -46,14 +46,19 @@ class RoomsManager:
         except IndexError:
             pass
 
-    def update(self, room_id: int, new_board) -> None:
+    def update(self, room_id: int, new_board) -> int:
         """
         Update room board
         :param room_id: (int)
         :param new_board: (Board)
-        :return:
+        :return: return 0 if success else 1
         """
-        self.rooms[room_id].board = new_board
+        try:
+            self.rooms[room_id].board = new_board
+
+            return 0
+        except IndexError:
+            return 1
 
     def get_rooms_ids(self) -> list:
         """

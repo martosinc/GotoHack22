@@ -35,19 +35,11 @@ def join_room(room_id: int):
 
 @app.route('/exit_room', methods=['post'])
 def exit_room():
-    if request.method != "POST":
-        return
-
     manager.exit(request.json['room_id'])
 
 
 @app.route('/room/<room_id>')
 def room(room_id):
-    try:
-        room_id = int(room_id)
-    except TypeError:
-        return
-
     return render_template('room.html')
 
 
@@ -58,18 +50,17 @@ def rooms():
 
 @app.route('/update', methods=['put'])
 def update():
-    if request.method != 'PUT':
-        return
-
     manager.update(request.json['room_id'], request.json['board'])
 
 
 @app.route('/fetch', methods=['put'])
 def fetch():
-    if not manager.get_room(request.json['room_id']).wait_player:
-        return
+    board = manager.get_board(request.json['room_id'])
 
-    return manager.get_board(request.json['room_id'])
+    if board is None:
+        return {'response': 0}
+
+    return {'response': board}
 
 
 app.run(debug=True)
