@@ -10,57 +10,64 @@ app.threaded = True
 
 manager = RoomsManager()
 
+
 @app.route('/')
 def index():
     return render_template('index.html')
 
 
-# @app.route('/create_room', methods=['post'])
-# def create_room():
-#     return redirect(f"/room/{manager.create()}")
+@app.route('/create_room')
+def create_room():
+    return redirect(f"/room/{manager.create()}")
 
 
-# @app.route('/join_room/<room_id>', methods=['post'])
-# def join_room(room_id: int):
-#     if type(room_id) != int:
-#         return redirect('/')
+@app.route('/join_room/<room_id>')
+def join_room(room_id: int):
+    try:
+        room_id = int(room_id)
+    except TypeError:
+        return
 
-#     manager.join(room_id)
+    manager.join(room_id)
 
-#     return redirect(f"/room/{room_id}")
-
-
-# @app.route('/exit_room', methods=['post'])
-# def exit_room():
-#     pass
+    return redirect(f"/room/{room_id}")
 
 
-# @app.route('/room/<room_id>')
-# def room(room_id):
-#     return render_template('room.html')
+@app.route('/exit_room', methods=['post'])
+def exit_room():
+    manager.exit(request.json['room_id'])
+
+
+@app.route('/room/<room_id>')
+def room(room_id):
+    return render_template('room.html')
+
+
+@app.route('/rooms')
+def rooms():
+    return render_template('rooms.html', rooms=manager.get_rooms_ids())
 
 
 @app.route('/update', methods=['put'])
 def update():
-    if request.method == 'PUT':
-        data = request.json
-        manager.update(data['room_id'], data['board'])
-        return data['board']
+    manager.update(request.json['room_id'], request.json['board'])
+    return {'response': 0}
+
+@app.route('/load', methods=['put'])
+def load():
+    board = manager.get_board(request.json['room_id'])
+    if board == {}:
+        manager.update(request.json['room_id'], request.json['board'])
+
+    return {'response': 0}
 
 @app.route('/fetch', methods=['put'])
 def fetch():
     data = request.json
-    # print(manager.get_board(data['room_id']))
-    return {'response':manager.get_board(data['room_id'])}
 
-@app.route('/loadroom', methods=['put'])
-def loadroom():
-    data = request.json
     board = manager.get_board(data['room_id'])
-    if board == -1:
-        manager.create()
-        manager.update(data['room_id'], data['board'])
-        return {'response':-1}
-    return {'response':0}
+
+    return {'response': board}
+
 
 app.run(debug=True)

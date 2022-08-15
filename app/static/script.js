@@ -1,6 +1,9 @@
 TABLE_SIZE = 8
 CANVAS_SIZE = 800
 STEP = CANVAS_SIZE / TABLE_SIZE;
+
+var room_id = Number(location.pathname.split('/').at(-1))
+
 var board;
 var boardNew;
 
@@ -57,23 +60,22 @@ function initApp() {
     })
 
     board = new Board()
-    sendData('loadroom',{'board':board,'room_id':0})
-    // draw()
+    sendData('/load', {'board':board,'room_id':room_id})
 
-    setInterval(update,50)
-    // setInterval(webUpdate,1000)
+    setInterval(update, 100)
 }
 
 function webUpdate() {
     // var boardNew;
-    response = fetch('fetch',{
+    response = fetch('/fetch',{
         method: 'PUT',
         headers: {'Content-Type': 'application/json; charset=UTF-8','Accept': 'application/json'},
-        body: JSON.stringify({'room_id':0})
+        body: JSON.stringify({'room_id':room_id})
     })
-    .then(response=> response.json())
-    .then(data =>boardNew = data)
-    board.setBoard(boardNew.response.table)
+    .then(response => response.json())
+    .then(data => board.setBoard(data.response.table))
+
+    // board.setBoard(boardNew.response.table)
 }
 
 function update() {
@@ -157,7 +159,7 @@ function setPiece(e) {
     
     // drawPiece(piece)
     board.addPiece(piece)
-    sendData('update',{'board':board,'room_id':0})
+    sendData('/update',{'board':board,'room_id':room_id})
 }
 
 function draw() {
