@@ -1,10 +1,12 @@
+import config
+
 from flask import Flask, request, render_template, redirect
 
 from rooms_manager import RoomsManager
 
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = ''
+app.config['SECRET_KEY'] = config.secret_key
 
 app.threaded = True
 
@@ -33,9 +35,9 @@ def join_room(room_id: int):
     return redirect(f"/room/{room_id}")
 
 
-@app.route('/exit_room', methods=['post'])
+@app.route('/exit_room', methods=['put'])
 def exit_room():
-    manager.exit(request.json['room_id'])
+    return {'response': manager.exit(request.json['room_id'])}
 
 
 @app.route('/room/<room_id>')
@@ -53,6 +55,7 @@ def update():
     manager.update(request.json['room_id'], request.json['board'])
     return {'response': 0}
 
+
 @app.route('/load', methods=['put'])
 def load():
     board = manager.get_board(request.json['room_id'])
@@ -60,6 +63,7 @@ def load():
         manager.update(request.json['room_id'], request.json['board'])
 
     return {'response': 0}
+
 
 @app.route('/fetch', methods=['put'])
 def fetch():
@@ -70,4 +74,4 @@ def fetch():
     return {'response': board}
 
 
-app.run(debug=True)
+app.run(debug=True, host="0.0.0.0")

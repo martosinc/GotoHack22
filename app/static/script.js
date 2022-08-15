@@ -1,14 +1,3 @@
-TABLE_SIZE = 8
-CANVAS_SIZE = 800
-STEP = CANVAS_SIZE / TABLE_SIZE;
-
-var room_id = Number(location.pathname.split('/').at(-1))
-
-var board;
-var boardNew;
-
-var ctx;
-
 class Board {
     constructor() {
         var table = []
@@ -34,7 +23,7 @@ class Board {
                 var prm = board[i][j]
                 this.table[i][j] = new Piece(prm['id'],prm['x'],prm['y'])
             }
-        }   
+        }
     }
 }
 
@@ -53,20 +42,30 @@ class Piece {
     }
 }
 
+TABLE_SIZE = 8
+CANVAS_SIZE = 800
+STEP = CANVAS_SIZE / TABLE_SIZE;
+
+var room_id = Number(location.pathname.split('/').at(-1))
+
+var selectedCellX = -1;
+var selectedCellY = -1;
+var board;
+var ctx;
+
 
 function initApp() {
-    getCnv().addEventListener('mousedown', function(e) {
-    setPiece(e)
-    })
-
     board = new Board()
-    sendData('/load', {'board':board,'room_id':room_id})
+    loadBoard()
+
+    getCnv().addEventListener('mousedown', function(e) {mouseHandler(e)})
+
+    window.onbeforeunload = function (event) {exit_room(); return "Some text"}
 
     setInterval(update, 100)
 }
 
-function webUpdate() {
-    // var boardNew;
+function fetchBoard() {
     response = fetch('/fetch',{
         method: 'PUT',
         headers: {'Content-Type': 'application/json; charset=UTF-8','Accept': 'application/json'},
@@ -75,32 +74,38 @@ function webUpdate() {
     .then(response => response.json())
     .then(data => board.setBoard(data.response.table))
 
-    // board.setBoard(boardNew.response.table)
+}
+
+function updateBoard() {
+     response = fetch('/update',{
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json; charset=UTF-8','Accept': 'application/json'},
+        body: JSON.stringify({'board':board,'room_id':room_id})
+    })
+}
+
+function loadBoard() {
+    response = fetch('/load',{
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json; charset=UTF-8','Accept': 'application/json'},
+        body: JSON.stringify({'board':board,'room_id':room_id})
+    })
+}
+
+function exit_room()
+{
+    response = fetch('/exit_room',{
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json; charset=UTF-8','Accept': 'application/json'},
+        body: JSON.stringify({'room_id': room_id})
+    })
 }
 
 function update() {
-    webUpdate()
+    fetchBoard()
     draw()
 }
 
-function sendData(url,data) {
-    response = fetch(url,{
-        method: 'PUT',
-        headers: {'Content-Type': 'application/json; charset=UTF-8','Accept': 'application/json'},
-        body: JSON.stringify(data)
-    })
-    // .then(response=> response.json())
-    // .then(data =>console.log(data))
-    return 1
-}
-
-function getMousePos(event) {
-    canvas = getCnv()
-    const rect = canvas.getBoundingClientRect()
-    const x = event.clientX - rect.left
-    const y = event.clientY - rect.top
-    return [x,y]
-}
 
 function getCnv() {
     const canvas = document.getElementById("canv")
@@ -143,23 +148,12 @@ function drawBoard() {
 }
 
 function drawPiece(piece) {
-    [id,x,y] = piece.getParam()
+    [id, x, y] = piece.getParam()
     ctx = getCtx();
     X = STEP * x
     Y = STEP * y
     
-    ctx.fillRect(X,Y,STEP,STEP)
-}
-
-function setPiece(e) {
-    [XPos, YPos] = getMousePos(e)
-
-    var [XCell, YCell] = [Math.floor(XPos/STEP),Math.floor(YPos/STEP)]
-    var piece = new Piece(0,XCell,YCell)
-    
-    // drawPiece(piece)
-    board.addPiece(piece)
-    sendData('/update',{'board':board,'room_id':room_id})
+    ctx.fillRect(X, Y, STEP, STEP)
 }
 
 function draw() {
@@ -169,4 +163,59 @@ function draw() {
     
     drawTable()
     drawBoard()
+}
+
+
+function getMousePos(event) {
+    canvas = getCnv()
+    const rect = canvas.getBoundingClientRect()
+    const x = event.clientX - rect.left
+    const y = event.clientY - rect.top
+
+
+    return [x,y]
+}
+
+function getCell(pos){
+    var [XPos, YPos] = pos
+
+    return [Math.floor(XPos/STEP), Math.floor(YPos/STEP)]
+}
+
+
+function setPiece(pos, fill_value) {
+    var [XCell, YCell] = pos
+    var piece = new Piece(fill_value, XCell, YCell)
+    
+    board.addPiece(piece)
+    updateBoard()
+}
+
+
+function setSelect(pos) {
+    var [XCell, YCell] = pos
+
+    if (selectedCellX === XCell && selectedCellY === YCell) {
+        [selectedCellX, selectedCellY] = [-1, -1]
+        return
+    }
+
+    [selectedCellX, selectedCellY] = [XCell, YCell]
+}
+
+function mouseHandler(e){
+    switch (e.button){
+        case 0:
+            if (selectedCellX === -1 && selectedCellY === -1) {
+                setPiece(getCell(getMousePos(e)), 0)
+                break
+            }
+
+            setPiece([selectedCellX, selectedCellY], -1)
+            setPiece(getCell(getMousePos(e)), 0)
+            break
+        case 2:
+            setSelect(getCell(getMousePos(e)))
+            break
+    }
 }

@@ -35,16 +35,17 @@ class RoomsManager:
         except IndexError:
             return 1
 
-    def exit(self, room_id: int) -> None:
+    def exit(self, room_id: int) -> int:
         """
-        Exit from room
+        Delete room if user exit
         :param room_id:
-        :return: nothing
+        :return: return 0 if success else 1
         """
         try:
             self.rooms.pop(room_id)
+            return 0
         except IndexError:
-            pass
+            return 1
 
     def update(self, room_id: int, new_board) -> int:
         """
@@ -73,17 +74,11 @@ class RoomsManager:
 
         return ids
 
-    def get_room(self, room_id: int) -> Room:
-        try:
-            return self.rooms[room_id]
-        except IndexError:
-            return None
-
     def get_board(self, room_id: int):
         """
         Get board from room
         :param room_id: room id (int)
-        :return: board (Board)
+        :return: board if success else -1
         """
         try:
             return self.rooms[room_id].board
